@@ -16,7 +16,7 @@ public class AlertApi {
     /**
      * @param appName 应用名称
      * @param title 告警标题(短)
-     * @param detail 告警详情(长)
+     * @param detail 告警详情(长,html)
      * @param critical 是否严重告警
      */
     public void alert(String appName, String title, String detail, boolean critical) {
