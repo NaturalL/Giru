@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <springProperty scope="context" name="console-level" source="log.console.filter.level" defaultValue="INFO"/>
+
+    <appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{${yyyy-MM-dd HH:mm:ss.SSS}} %clr(%5p) %clr(---){faint} %clr(%logger{0}){cyan} %clr(:){faint} %m%n%wEx</pattern>
+        </layout>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${console-level}</level>
+        </filter>
+    </appender>
+
+    <appender name="rootAppender"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>./logs/root.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./logs/root.log.%d.log</fileNamePattern>
+            <!-- 每产生一个日志文件，该日志文件的保存期限为10天 -->
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{${yyyy-MM-dd HH:mm:ss.SSS}} %p %logger{0} %m [%thread]%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="monitorAppender"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>./logs/monitor.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./logs/monitor.log.%d.log</fileNamePattern>
+            <!-- 每产生一个日志文件，该日志文件的保存期限为10天 -->
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{${yyyy-MM-dd HH:mm:ss.SSS}} %p %logger{0} %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="bootAppender"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>./logs/boot.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./logs/boot.log.%d.log</fileNamePattern>
+            <!-- 每产生一个日志文件，该日志文件的保存期限为10天 -->
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{${yyyy-MM-dd HH:mm:ss.SSS}} %p %logger{0} %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="rocketAppender"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>./logs/rocket.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./logs/rocket.log.%d.log</fileNamePattern>
+            <!-- 每产生一个日志文件，该日志文件的保存期限为10天 -->
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{${yyyy-MM-dd HH:mm:ss.SSS}} %p %logger{0} %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="alertAppender"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>./logs/alert.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./logs/alert.log.%d.log</fileNamePattern>
+            <!-- 每产生一个日志文件，该日志文件的保存期限为10天 -->
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{${yyyy-MM-dd HH:mm:ss.SSS}} %p %logger{0} %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="eventAppender"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>./logs/event.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./logs/event.log.%d.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="asyncEventAppender"
+              class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold> <!-- default 20, means drop lower event when has 20% capacity remaining -->
+        <appender-ref ref="eventAppender"/>
+        <queueSize>2048</queueSize> <!-- default 256 -->
+        <includeCallerData>false</includeCallerData><!-- default false -->
+        <neverBlock>true</neverBlock><!-- default false, set to true to cause the Appender not block the application and just drop the messages -->
+    </appender>
+
+
+    <logger name="boot" level="INFO" additivity="false">
+        <appender-ref ref="bootAppender"/>
+    </logger>
+
+    <logger name="monitor" level="INFO" additivity="false">
+        <appender-ref ref="monitorAppender"/>
+    </logger>
+
+    <logger name="rocket" level="INFO" additivity="false">
+        <appender-ref ref="rocketAppender"/>
+    </logger>
+
+    <logger name="alert" level="INFO" additivity="false">
+        <appender-ref ref="alertAppender"/>
+    </logger>
+
+
+    <logger name="event" level="INFO" additivity="false">
+        <appender-ref ref="asyncEventAppender"/>
+    </logger>
+
+
+    <root level="info">
+        <appender-ref ref="rootAppender"/>
+        <appender-ref ref="consoleLog"/>
+    </root>
+
+
+</configuration>

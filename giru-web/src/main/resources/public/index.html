@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>异常事件</title>
+</head>
+<body style="background:#f5f7f9;">
+
+<link rel="stylesheet" type="text/css" href="/lib/styles/iview.css">
+<link rel="stylesheet" type="text/css" href="/style.css">
+<link rel="stylesheet" type="text/css" href="/iconfont/iconfont.css">
+
+<script type="text/javascript" src="/lib/vue.min.2.5.16.js"></script>
+<script type="text/javascript" src="/lib/iview.min.4.3.0.js"></script>
+<script src="/config.js"></script>
+<script src="/app.js"></script>
+
+
+<style>
+    .error-count {
+        white-space: nowrap;
+        overflow-x: auto;
+    }
+    .error-count .ivu-badge-count {
+        background-color: purple;
+    }
+    .ivu-badge-count.changed {
+        background-color: red;
+    }
+    .ivu-radio-group-item {
+        font-weight: bold;
+    }
+    .error-count::-webkit-scrollbar {
+        display: none;
+    }
+    .highlightText {
+        color: red;
+        font-weight: bold;
+    }
+    .caused-by {
+        font-weight: bold;
+        border: 1px solid;
+        padding: 0 2px;
+        border-radius: 5px;
+    }
+    .detail-line {
+        margin-top: 10px;
+    }
+    .app-id {
+        margin-left: 2px;
+    }
+    .app-id:hover .follow-app {
+        visibility: visible;
+    }
+    .follow-app {
+        cursor: pointer;
+        visibility: hidden;
+        margin-left: -17px;
+    }
+    .followed {
+        color: #FF9800;
+        visibility: visible !important;
+    }
+</style>
+
+<div id="app" v-cloak>
+    <div class="layout">
+        <layout>
+            <dt-header></dt-header>
+            <layout>
+                <i-content :style="{padding: '20px 60px', minHeight: '280px', background: '#f5f7f9'}">
+                    <row style="margin-bottom: 10px; ">
+                        <i-col span="12">
+                            <i-input style="width: 230px;" search placeholder="筛选服务" v-model="search"/>
+                        </i-col>
+                        <i-col span="12" style="text-align: right">
+                            <radio-group v-model="sort">
+                                <radio label="1">数量</radio>
+                                <Radio label="2">时间</Radio>
+                            </radio-group>
+                        </i-col>
+
+                    </row>
+                    <row>
+                        <i-col span="24">
+                            <i-table :columns="header" :loading="loading"
+                                     min-width="1000"
+                                     :data="showRows">
+                                <template slot-scope="{row}" slot="errors">
+                                    <span>{{row.errors}}</span><Icon v-if="row._increase" type="md-arrow-round-up" />
+                                </template>
+                                <template slot-scope="{row}" slot="updateTime">
+                                    <span>{{fromNow(row.updateTime)}}</span>
+                                </template>
+                                <template slot-scope="{row}" slot="appId">
+                                    <div class="app-id">
+                                        <icon :type="row.follow? 'md-star':'md-star-outline'"
+                                              size="14" class="follow-app" :class="{followed: row.follow}"
+                                              @click.native="toggleFollow(row)"></icon>
+                                        <span>{{row.appId}}</span>
+                                    </div>
+                                </template>
+                                <template slot-scope="{row}" slot="detail">
+                                    <div class="error-count">
+                                        <Badge :count="stat.total" v-for="stat in row.statsList" :class-name="stat._changed ? 'changed' : '' "
+                                               overflow-count="10000" style="margin: 12px 0px;">
+                                            <Tag :color="getColor(stat)" :type="getColor(stat) == 'default' ? 'border':''"
+                                                     @click.native="showDetail(stat, row)">
+                                                <del v-if="stat.errorLevel == 'TRIVIAL'">{{stat.errorName}}</del>
+                                                <strong v-else-if="stat.errorLevel == 'CRITICAL'">{{stat.errorName}}</strong>
+                                                <span v-else >{{stat.errorName}}</span>
+                                            </Tag>
+                                        </Badge>
+                                    </div>
+                                </template>
+                                <template slot-scope="{row}" slot="expands">
+                                    <h1>{{row.errors}}</h1>
+                                </template>
+                            </i-table>
+                        </i-col>
+                    </row>
+                    </br>
+
+                </i-content>
+            </layout>
+        </layout>
+    </div>
+
+    <Modal v-model="detail.show" title="详情" width="1000" transition-names="['none', 'none']" footer-hide="true">
+        <div style="float: right;">
+            <i-button v-if="config.sls" @click.native="toAliyunLog(detail)" class="iconfont-btn" style="color:#ff6e00;"
+                      type="default" shape="circle" size="small" custom-icon="iconfont icon-aliyun"></i-button>
+            <i-button @click.native="showHistory(detail.app.appId, detail.err.errorFeature)"
+                      type="primary" shape="circle" size="small" icon="ios-pulse">历史趋势</i-button>
+<!--            <i-switch v-model="detail.err._notTrivial"-->
+<!--                    size="large" true-color="#13ce66" style="margin-left: 20px;" @on-change="changeFeatureConfig($event, detail.err)">-->
+<!--                <span slot="open">默认</span>-->
+<!--                <span slot="close">琐碎</span>-->
+<!--            </i-switch>-->
+            <i-select v-model="detail.err.errorLevel" style="width:70px;margin-left: 20px;" size="small"
+                      @on-change="changeFeatureConfig($event, detail.err)">
+                <i-option  value="CRITICAL" label="严重"><span style="color: #ed4014;">严重</span></i-option>
+                <i-option  value="DEFAULT" label="默认"><span style="color: #2d8cf0;">默认</span></i-option>
+                <i-option  value="TRIVIAL" label="琐碎">琐碎</i-option>
+            </i-select>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <h4>服务:</h4> {{detail.app.appId }} @ {{detail.err.ip}}
+        </div>
+        <div>
+            <h4>最近触发:</h4> <date-time :time="detail.err.lastFireTime" :inline="true"></date-time> <strong>{{fromNow(detail.err.lastFireTime)}}</strong>
+        </div>
+        <div class="detail-line">
+            <h4>Logger:</h4><span>{{detail.err.logger}}</span>
+        </div>
+        <div class="detail-line">
+            <h4>错误:</h4>
+            <pre v-if="preTex(detail.err.error)" style="overflow: auto; margin-top: 0px; padding-bottom:10px;">{{detail.err.errorMsg}}</pre>
+            <p style="word-break: break-all;" v-else >{{detail.err.errorMsg}}</p>
+        </div>
+        <div class="detail-line">
+            <h4>StackTrace:</h4>
+            <pre style="overflow: auto; margin-top: 0px; padding-bottom:10px;" v-html="highlight(detail.err.stackTrace)"></pre>
+        </div>
+    </Modal>
+    <Modal v-model="history.show" title="历史趋势" width="1000" transition-names="['none', 'none']">
+        <div id="history-chart" style="width:980px; height:100px;"></div>
+    </Modal>
+</div>
+
+<script type="text/javascript" src="/lib/lodash.min.4.17.10.js"></script>
+<script src="/lib/axios.min.0.18.0.js"></script>
+<script src="/lib/moment-with-locales.min.2.24.0.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@4.8.0/dist/echarts.min.js"></script>
+
+<script type="text/x-template" id="row-expand">
+    <div style="margin: 0px -32px;">
+        <row>
+            <div style="width: 230px; float: left; overflow: auto; line-height: 40px;">
+                <strong>启动:</strong> <date-time :time="row.lastDeployTime" :inline="true"></date-time>
+            </div>
+            <div style="padding-left: 120px; float: left;">
+                <i-button @click.native="history(row.appId)" shape="circle" type="primary">历史趋势</i-button>
+            </div>
+        </row>
+    </div>
+</script>
+
+
+<script>
+
+	Vue.component('row-expand', {
+		template: '#row-expand',
+		props: {
+			row: Object
+		},
+		mounted: function () {},
+        methods: {
+			history: function (row) {
+				this.$emit("showHistory", row);
+			}
+        }
+	});
+
+
+	var chart;
+	var Main = {
+			el: "#app",
+			mounted: function () {},
+			methods: {
+				showHistory: function (appId, errorFeature) {
+					this.history.show = true;
+
+					if (chart) {
+						chart.dispose();
+                    }
+					axios.get('/admin/history', {params: {appId: appId}})
+					.then(function (resp) {
+						var body = resp.data.data;
+						var grids = [];
+						var xAxes = [];
+						var yAxes = [];
+						var series = [];
+						var titles = [];
+						var rows = resp.data.map.size;
+						var count = 0;
+						var errors = body.counts;
+                        if (errorFeature) {
+							errors = {};
+							errors[errorFeature] = body.counts[errorFeature] || [0];
+							rows = 1;
+                        }
+						echarts.util.each(errors, function (list,errorFeature) {
+							var data = list;
+							grids.push({
+								show: true,
+								borderWidth: 0,
+								backgroundColor: '#fff',
+								shadowColor: 'rgba(0, 0, 0, 0.3)',
+								shadowBlur: 2,
+							});
+							xAxes.push({
+								show: false,
+								gridIndex: count,
+								type: 'category',
+								boundaryGap: false,
+								data: body.days
+							});
+							yAxes.push({
+								type: 'value',
+								show: false,
+								max: function (value) {
+									return value.max * 1.4;
+								},
+								gridIndex: count
+							});
+							series.push({
+								name: "数量",
+								type: 'line',
+								xAxisIndex: count,
+								yAxisIndex: count,
+								data: data,
+								showSymbol: true,
+								smooth: true,
+								areaStyle: {},
+								label: {
+									show:true,
+								}
+							});
+							titles.push({
+								textAlign: 'left',
+								text: body.names[errorFeature],
+								textStyle: {
+									fontSize: 12,
+									fontWeight: 'bold'
+								}
+							});
+							count++;
+						});
+						var chartHeight = rows * 120;
+						var margin = 16;
+						echarts.util.each(grids, function (grid, idx) {
+							grid.left =  '2%';
+							grid.top = (chartHeight - margin) / rows * idx + margin;
+							grid.width = '96%';
+							grid.height = (chartHeight - margin) / rows - margin;
+							titles[idx].left = '2%';
+							titles[idx].top = grid.top;
+						});
+
+						var option = {
+							tooltip: {
+								trigger: 'axis'
+							},
+							title: titles,
+							grid: grids,
+							xAxis: xAxes,
+							yAxis: yAxes,
+							series: series
+						};
+						console.log(option)
+						var dom = document.getElementById('history-chart');
+						dom.style.height = chartHeight + "px";
+                        chart = echarts.init(dom);
+						chart.setOption(option);
+						chart.resize();
+					});
+				},
+				preTex: function (s) {
+                    return s && s.indexOf("\n") >= 0;
+				},
+				showDetail: function (err, row) {
+					this.detail.show = true;
+					this.detail.err = err;
+					this.detail.app = row;
+				},
+                getColor: function (stat) {
+				    for (var tag of stat.alertTags) {
+				        if (tag.startsWith("increase")) {
+                            return "error"
+                        }
+                    }
+				    if (stat.alertTags.includes("new")) {
+				        return "red"
+                    }
+				    return "default"
+                },
+				toggleFollow: function (row) {
+					axios.post('/admin/followApp', new URLSearchParams({appId: row.appId, isFollow: !row.follow}))
+                    .then(function () {
+						row.follow = !row.follow;
+						vm.appErrors.map(function (value) {
+							if (value.appId == row.appId) {
+								value.follow = row.follow;
+                            }
+                        })
+					});
+				},
+                updateRows: function () {
+                    var s = this.search;
+                    var sort = this.sort;
+					this.showRows = this.appErrors.filter(function (app) {
+						return !s || app.appId.indexOf(s) >= 0;
+					}).map(function (app) {
+						app.statsList =  _.orderBy(app.statsList, sort == "1"? ["total"]:["lastFireTime"], ["desc"]);
+						return app;
+					});
+					this.showRows = _.orderBy(this.showRows, sort == "1"? ["follow", "errors"]:["follow", "updateTime"], ["desc", "desc"]);
+				},
+				fromNow: function (t) {
+					if (!t) return '--';
+					moment.locale('zh-cn');
+					return moment(t).fromNow();
+				},
+                highlight: function (text) {
+					if (!text) return "";
+					text = _.escape(text);
+					return text.replace(new RegExp(vm.config.bizPackages, "gi"),function (match) {
+						return '<span class="highlightText">' + match + '</span>';
+				    }).replace(new RegExp("^Caused by:", "gm"),function (match) {
+						return '<span class="caused-by">' + match + '</span>';
+					});
+				},
+                toAliyunLog: function (detail) {
+					var start = new Date(new Date().toLocaleDateString()).getTime()/1000 + 10*3600;
+					var end = start + 24*3600;
+					if(new Date().getHours() < 10) {
+						start -= 24*3600;
+						end -= 24*3600;
+                    }
+                    var query = detail.err.errorName;
+					if (detail.err.errorName == "其他") {
+						query = "not Exception"
+                    }
+                    var url = vm.config.sls + "?" +
+						encodeURIComponent("encode=base64&queryString="
+                            + btoa("appId:" + detail.app.appId + " and " + query)
+                            + "&queryTimeType=99"
+                            + "&startTime=" + start + "&endTime=" + end);
+                    this.go(url, true);
+				},
+				go: function (url, newPage) {
+					if (newPage) {
+						window.open(url)
+                    } else {
+						window.location.href = url;
+                    }
+				},
+                changeFeatureConfig: function (level, stats) {
+                    var self = this;
+                    axios.post('/admin/configFeature', {
+                        appId:stats.appId,
+                        featureElements: stats.featureElements,
+                        errorFeature: stats.errorFeature,
+                        errorLevel: level
+                    }).then(function (resp) {
+                        if ("TRIVIAL" == level) {
+                            self.$Message.warning('已标记为琐碎异常,减少告警');
+                        }
+                    }).catch(function (err) {
+                        console.error(err);
+                        self.$Message.warning("修改失败");
+                    });
+                }
+			},
+            watch: {
+				search: function () {
+                    this.updateRows();
+				},
+				sort: function () {
+					this.updateRows();
+				}
+            },
+			data: function () {
+				var vm = this;
+				return {
+					sort: "1",
+					updateTime: 0,
+					loading: true,
+					appErrors: [],
+					header: [
+						{title: '服务', slot: 'appId', width: 230, fixed: 'left'},
+						{title: '异常数', slot: 'errors', width: 100},
+						{type: 'expand',  width: 20, render: function(h, params) {
+							return h("row-expand", {
+								props: {
+                                    row: params.row
+								},
+                                on: {
+									showHistory: vm.showHistory
+                                }
+							})
+						}},
+						{title: '异常统计', slot: 'detail'},
+						{title: '变更时间', slot: 'updateTime', width: 120},
+					],
+					detail: {
+						show: false,
+                        trivial: false,
+						err: {},
+                        app: {},
+					},
+					history: {
+						show: false,
+                        data: []
+                    },
+                    search: null,
+                    showRows: [],
+					diffMap: {},
+                    config:{}
+				}
+			}
+		}
+	;
+
+	var vm;
+	vm = new Vue(Main);
+
+	function update() {
+		axios.get('/admin/appErrors', {
+            	params: {
+            		updateTime: vm.updateTime
+            	}
+            })
+		.then(function (response) {
+			if (response.data.status == 200) {
+				vm.updateTime = response.data.map.updateTime;
+				var appErrors = response.data.data;
+				var userConfig = response.data.map.userConfig;
+                var featureConfigs = response.data.map.featureConfigs;
+
+				var lastErrorsMap = {}
+				vm.appErrors.map(function (value) {
+					lastErrorsMap[value.appId] = value;
+                });
+
+				appErrors = appErrors.map(function (appError) {
+					appError.follow = userConfig.followApps.indexOf(appError.appId) >= 0;
+					appError.statsList = [];
+					for (var k in appError.stats) {
+						var stat = appError.stats[k];
+						stat._changed = false;
+                        var config = featureConfigs[stat.errorFeature];
+						stat.errorLevel = !config ? "DEFAULT" : config.errorLevel;
+						appError.statsList.push(stat);
+					}
+
+                    var lastApp = lastErrorsMap[appError.appId];
+					if (lastApp) {
+						appError._increase = lastApp.errors < appError.errors;
+						appError.statsList.map(function (stat) {
+							var lastStat = lastApp.stats[stat.errorFeature];
+							stat._changed = !lastStat || (lastStat.total != stat.total);
+						})
+                    }
+					return appError;
+				});
+
+				vm.appErrors = appErrors;
+				vm.loading = false;
+				vm.updateRows();
+			}
+			setTimeout(function () {
+				update();
+			}, 5000)
+		}).catch(function (error) {
+			console.log('catch', error);
+			setTimeout(function () {
+				update();
+			}, 4000)
+		});
+	}
+
+	update();
+
+    axios.get('/admin/client/config').then(function (response) {
+        vm.config = response.data.map;
+    });
+
+</script>
+
+
+</body>
+</html>

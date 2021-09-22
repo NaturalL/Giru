@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+
+<body>
+
+<a><h2 style="text-align:center;">GIRU</h2></a>
+
+<div style="padding: 10px;border: 1px solid #ccc;border-radius: 10px;">
+    <div>
+        <strong>服务:</strong> <span th:text="${name}"></span><br>
+        <strong>触发时间:</strong> <span th:text="${lastFireTime}"></span><br>
+        <strong>IP:</strong> <span th:text="${ip}"></span><br>
+        <strong>Logger:</strong> <span th:text="${logger}"></span><br>
+    </div>
+    <div style="margin-top: 10px;">
+        <strong>错误:</strong><br>
+        <pre th:if="${errorPre}" th:text="${error}" style="overflow:auto;margin-top:0px;padding-bottom:10px;"></pre>
+        <p th:unless="${errorPre}" th:text="${error}"></p>
+    </div>
+    <div style="margin-top: 10px;">
+        <strong>StackTrace:</strong><br>
+        <pre th:utext="${stackTrace}" style="overflow: auto;margin-top: 0px;padding-bottom:10px;"></pre>
+    </div>
+</div>
+
+</body>
+</html>

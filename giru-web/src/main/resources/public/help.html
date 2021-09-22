@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>帮助</title>
+</head>
+<body>
+
+<link rel="stylesheet" type="text/css" href="/lib/styles/iview.css">
+
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<script type="text/javascript" src="/lib/vue.min.2.5.16.js"></script>
+<script type="text/javascript" src="/lib/iview.min.3.4.2.js"></script>
+<script type="text/javascript" src="/lib/lodash.min.4.17.10.js"></script>
+
+
+<div id="app" v-cloak>
+    <div class="layout">
+        <layout>
+            <dt-header></dt-header>
+
+
+            <layout>
+                <i-content :style="{padding: '20px 60px', minHeight: '280px', background: '#fff'}">
+                    <row>
+                        <h2>说明</h2>
+                        <pre>
+<h3>接入:</h3>
+添加依赖
+<code>
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.biasee.giru&lt;/groupId&gt;
+        &lt;artifactId&gt;giru-spring-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;<span>{{version}}</span>&lt;/version&gt;
+    &lt;/dependency&gt;
+</code>
+<h3>可选参数:</h3>
+客户端配置
+<code>
+    giru.event.error-log.enabled #启用错误日志采集,默认 true
+    giru.event.report.enabled #启用事件上报,默认 true
+    giru.event.error-log.stacktraceDepth #Exception栈深度,默认50
+    giru.event.error-log.bizPackages #逗号分隔业务package前缀,默认空
+</code>
+                        </pre>
+
+                        <h2>功能</h2>
+                        错误日志上报: 目前支持 Logback Log4j, 自动上报 ERROR 及以上级别. 每日 10:00 重置异常数.</br>
+                        告警: 按异常stackTrace聚合,提供新异常和突增异常告警
+                    </row>
+                </i-content>
+            </layout>
+        </layout>
+    </div>
+
+</div>
+
+<script src="/lib/axios.min.0.18.0.js"></script>
+<script src="/lib/moment-with-locales.min.2.24.0.js"></script>
+<script src="/config.js"></script>
+<script src="/app.js"></script>
+
+<script>
+	var vm = new Vue({
+		el: "#app",
+        mounted: function () {
+			var self = this;
+			axios.get('/admin/client/config').then(function (response) {
+				self.version = response.data.map.version;
+			});
+		},
+		methods: {},
+		data: function () {
+			return {
+				version: ''
+            }
+		}
+	});
+</script>
+
+
+</body>
+</html>

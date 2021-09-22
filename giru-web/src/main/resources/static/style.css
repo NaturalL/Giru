@@ -1,0 +1,111 @@
+body {
+  font-weight: normal;
+  font-size: 14px;
+  /*color: black;*/
+  font-family: 'Source Sans Pro', 'Lucida Grande', "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", 微软雅黑, Arial, sans-serif;
+}
+
+#app {
+  padding:0px;
+}
+.layout {
+  background:#f5f7f9;
+  position:relative;
+  overflow:hidden;
+}
+.ivu-badge-count {
+  right:12px;
+}
+[v-cloak]{
+  display:none
+}
+.log-file .ivu-card {
+  margin-bottom: 15px;
+}
+.log-file .ivu-badge {
+  margin-bottom: 10px;
+}
+.log-line {
+  font-size:14px;
+  border-bottom: #aaa dashed 1px;
+  margin-bottom: 3px;
+}
+.badge-change {
+  background: #8f09e2;
+}
+
+.ivu-layout-header {
+  background: none;
+  padding: 0;
+}
+
+.header-logo {
+  float: left;
+  line-height: 60px;
+  z-index: 1000;
+  position: relative;
+  margin: 0 20px 0 50px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.header-user {
+  float: right;
+  line-height: 60px;
+  z-index: 1000;
+  position: relative;
+  margin: 0 50px 0 0px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.ivu-menu-item {
+  font-size: 15px;
+}
+
+.ivu-card ul li {
+  list-style:none;
+}
+
+.ivu-btn {
+  font-size: 14px;
+}
+
+.show-all.ivu-tag {
+  max-width: 100% !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.ivu-table-header, .ivu-table-fixed-header {
+  font-size: 14px;
+}
+
+.ivu-table-tbody {
+  font-size: 14px;
+  color: #0c0c0c;
+}
+
+.box {
+  border: 1px solid;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.vjs-tree.is-root {
+  word-break: break-all;
+}
+
+.iconfont-btn.ivu-btn-circle.ivu-btn-icon-only.ivu-btn-small {
+  height: 29px;
+  font-size: 20px;
+  border-radius: 32px;
+  line-height: 1;
+  padding: 0px 4px;
+  width: auto;
+}
+
+.iconfont-btn .iconfont {
+  line-height: 1;
+}

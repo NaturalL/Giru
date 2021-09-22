@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: giru-web
+  profiles:
+    active: dev
+  devtools.restart.exclude: static/**,public/**
+  thymeleaf:
+    enabled: true
+    prefix: classpath:/templates/
+
+
+server:
+  port: 8092
+
+giru:
+  event:
+    data:
+      path: ./giru-data
+    config:
+      aliyunSls: https://sls.console.aliyun.com/lognext/project/your-project/logsearch/your-logstore
+      clientVersion: 1.0.0
+      criticalExceptions: OutOfMemoryError,StackOverflowError,NoClassDefFoundError,ClassNotFoundException,NoSuchFieldException,NoSuchMethodException
+      bizPackages: com.example,com.test
+      newExceptionExpireDays: 3
+      baseStatsDays: 2
+      resetHour: 10
+
