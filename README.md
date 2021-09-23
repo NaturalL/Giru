@@ -28,7 +28,7 @@ http://104.128.93.128:8092
 
 ## 服务端
     
-    //按需接入IM 邮件 短信 告警
+    //需要编写代码，接入IM 邮件 短信 告警
     com.biasee.giru.event.core.service.AlertApi.alert
 
 ### 配置
