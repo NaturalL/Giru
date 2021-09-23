@@ -35,14 +35,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.5.3</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <outputDirectory>../</outputDirectory>
-                </configuration>
             </plugin>
         </plugins>
     </build>

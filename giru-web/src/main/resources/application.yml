@@ -15,13 +15,16 @@ server:
 giru:
   event:
     data:
+      # 数据存储路径
       path: ./giru-data
     config:
+      # 阿里云日志地址
       aliyunSls: https://sls.console.aliyun.com/lognext/project/your-project/logsearch/your-logstore
       clientVersion: 1.0.0
+      # 严重告警异常
       criticalExceptions: OutOfMemoryError,StackOverflowError,NoClassDefFoundError,ClassNotFoundException,NoSuchFieldException,NoSuchMethodException
-      bizPackages: com.example,com.test
-      newExceptionExpireDays: 3
-      baseStatsDays: 2
-      resetHour: 10
+      bizPackages: com.example,com.test  # 业务包名前缀,可高亮显示
+      newExceptionExpireDays: 3  # 3天内未出现过为新异常
+      baseStatsDays: 7   # 7天异常总数为基线
+      resetHour: 10 # 重置异常数时间点,从上班开始到下一个上班结束
 
