@@ -86,7 +86,7 @@ public class EventService {
             }
         });
         reportThread.setName("GiruEventReporter");
-        reportThread.setDaemon(false);
+        reportThread.setDaemon(true);
         reportThread.start();
         LOGGER.info("启动");
     }
